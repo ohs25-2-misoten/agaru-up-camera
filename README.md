@@ -125,7 +125,7 @@ GNU Affero General Public License v3.0 (AGPL-3.0) ライセンスの下で提供
 
 ## 👥 メンテナー
 
-- [tomo3101](tacstomo.sub@gmail.com)
+- [tomo3101](mailto:tacstomo.sub@gmail.com)
 
 ## 📞 サポート
 
