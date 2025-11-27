@@ -1,4 +1,3 @@
-# main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from concat_videos import concat_latest_videos
