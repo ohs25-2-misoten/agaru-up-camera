@@ -10,8 +10,8 @@ async def get_video(time: int):
         raise HTTPException(status_code=400, detail="time must be positive integer")
 
     try:
-        output_file, cmd = concat_latest_videos(N_CLIPS=time)
-        print("実行コマンド:", " ".join(cmd))  # 必要に応じてログに表示
+        output_file = concat_latest_videos(N_CLIPS=time)
+        #print("実行コマンド:", " ".join(cmd))  # 必要に応じてログに表示
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
