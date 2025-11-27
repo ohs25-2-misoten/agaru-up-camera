@@ -32,7 +32,12 @@ cd agaru-up-camera
 
 ## 📁 プロジェクト構造
 
-[WIP]
+```
+agaru-up-camera/
+├── concat_videos.py    # 動画結合処理
+├── rec.py              # 録画処理
+└── app.py              # アプリのエントリーポイント
+```
 
 ## 🔄 開発ワークフロー
 
@@ -101,7 +106,7 @@ Semantic Versioning (SemVer) を採用：
 1. devからreleaseブランチを作成
 2. バージョン更新とリリース準備
 3. mainにマージしてタグ付け
-4. App Store Connectにアップロード
+4. サーバーにデプロイ（例: Raspberry Pi上でサービスを起動、またはDockerイメージを作成してデプロイ）
 
 ## 🤝 コントリビューション
 
