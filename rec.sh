@@ -2,11 +2,11 @@
 set -e
 set -o pipefail
 
-# Ctrl+C
-trap 'echo "Terminating recoding..."; exit 0' SIGINT SIGQUIT
+# Ctrl+CやSIGQUITで中断された場合の処理（録画を終了して正常終了メッセージを表示）
+trap 'echo "Terminating recording..."; exit 0' SIGINT SIGQUIT
 
 # スクリプトのディレクトリを取得
-SCRIPT_DIR=$(cd $(dirname $0) ; pwd)
+SCRIPT_DIR=$(cd "$(dirname "$0")" ; pwd)
 
 # ラズベリーパイ 遡り録画スクリプト
 # 設定パラメータ
@@ -30,7 +30,7 @@ fi
 mkdir -p "$RECORDING_DIR"
 
 echo "Starting recording..."
-echo "Lookback duration: ${SEGMENT_TIME}s"
+echo "Segment duration: ${SEGMENT_TIME}s, Total lookback: $((SEGMENT_TIME * MAX_SEGMENTS))s"
 
 ffmpeg \
     -f v4l2 -thread_queue_size 8192 -input_format mjpeg -s "$VIDEO_RESOLUTION" -framerate "$VIDEO_FRAMERATE" -i "$VIDEO_DEVICE" \
