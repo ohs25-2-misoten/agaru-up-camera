@@ -13,7 +13,7 @@ def get_videos(time: int, background_tasks: BackgroundTasks):
     指定された秒数分の動画を結合して返す
 
     Args:
-        time: 動画の長さ（秒単位、1～60秒）
+        time: 動画の長さ（秒単位、1～120秒）
         background_tasks: バックグラウンドタスク
 
     Returns:
