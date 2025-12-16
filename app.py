@@ -1,7 +1,7 @@
 import subprocess
 import os
 from datetime import datetime
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
 
@@ -20,16 +20,21 @@ def get_videos(time: int, background_tasks: BackgroundTasks):
         MP4動画ファイル
     """
 
+    max_time = 120
+
     # 秒数のバリデーション
     if time < 1:
-        return {"error": "秒数は1以上で指定してください"}
+        raise HTTPException(status_code=400, detail="秒数は1以上で指定してください")
 
-    if time > 120:
-        return {"error": "秒数は最大120秒です"}
+    if time > max_time:
+        raise HTTPException(status_code=400, detail=f"秒数は最大{max_time}秒です")
 
     # スクリプトディレクトリを取得
     script_dir = Path(__file__).parent.resolve()
     combine_script = script_dir / "combine_segments.sh"
+
+    if not combine_script.exists():
+        raise HTTPException(status_code=500)
 
     # 出力ファイル名を生成（lookback_YYYYMMDD_HHMMSS.mp4）
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -46,23 +51,21 @@ def get_videos(time: int, background_tasks: BackgroundTasks):
         )
 
         if result.returncode != 0:
-            return {"error": "動画の結合に失敗しました", "details": result.stderr}
+            raise HTTPException(status_code=500)
 
         # ファイルが存在することを確認
         if not output_path.exists():
-            return {"error": "出力ファイルが生成されませんでした"}
-
-        # バックグラウンドタスクにファイル削除を追加
-        background_tasks.add_task(os.remove, str(output_path))
+            raise HTTPException(status_code=500)
 
         # ファイルをレスポンスで返す
         return FileResponse(
             path=output_path,
             media_type="video/mp4",
-            filename=output_filename
+            filename=output_filename,
+            background=BackgroundTasks(os.remove, str(output_path))
         )
 
     except subprocess.TimeoutExpired:
-        return {"error": "動画の結合がタイムアウトしました"}
+        raise HTTPException(status_code=504, detail="リクエストがタイムアウトしました")
     except Exception as e:
-        return {"error": f"エラーが発生しました: {str(e)}"}
+        raise HTTPException(status_code=500)
