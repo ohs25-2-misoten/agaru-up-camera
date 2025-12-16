@@ -60,6 +60,16 @@ fi
 TEMP_FILELIST="${RECORDING_DIR}/.tmp_filelist_$(date +%s%N)_$$.txt"
 trap "rm -f $TEMP_FILELIST" EXIT
 
+# out.ffconcatで利用可能なセグメント数をカウント
+AVAILABLE_SEGMENTS=$(grep -c "^file " "$FFCONCAT_FILE")
+
+# 利用可能なセグメント数がリクエスト数に足りていない場合
+if [ "$AVAILABLE_SEGMENTS" -lt "$REQUIRED_SEGMENTS" ]; then
+    echo "警告: 利用可能なセグメント数（${AVAILABLE_SEGMENTS}）がリクエスト数（${REQUIRED_SEGMENTS}）に足りていません"
+    echo "利用可能なセグメント数（${AVAILABLE_SEGMENTS}秒分）で結合処理を続行します"
+    REQUIRED_SEGMENTS=$AVAILABLE_SEGMENTS
+fi
+
 # out.ffconcatの内容から"file"行を抽出し、最後の$REQUIRED_SEGMENTS個を取得
 grep "^file " "$FFCONCAT_FILE" | tail -n "$REQUIRED_SEGMENTS" > "$TEMP_FILELIST"
 
