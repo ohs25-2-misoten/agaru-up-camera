@@ -57,8 +57,8 @@ if [ ! -f "$FFCONCAT_FILE" ]; then
 fi
 
 # out.ffconcatから指定秒数分のセグメントを抽出
-TEMP_FILELIST="${RECORDING_DIR}/.tmp_filelist_$(date +%s%N)_$$.txt"
-trap "rm -f $TEMP_FILELIST" EXIT
+TEMP_FILELIST=$(mktemp "${RECORDING_DIR}/.tmp_filelist_XXXXXX.txt")
+trap "rm -f '$TEMP_FILELIST'" EXIT INT TERM
 
 # out.ffconcatで利用可能なセグメント数をカウント
 AVAILABLE_SEGMENTS=$(grep -c "^file " "$FFCONCAT_FILE")
