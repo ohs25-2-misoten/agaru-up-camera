@@ -8,17 +8,15 @@ trap 'echo "Terminating recording..."; exit 0' SIGINT SIGQUIT
 # スクリプトのディレクトリを取得
 SCRIPT_DIR=$(cd "$(dirname "$0")" ; pwd)
 
-# ラズベリーパイ 遡り録画スクリプト
-# 設定パラメータ
-RECORDING_DIR="${SCRIPT_DIR}/recordings"
-SEGMENT_TIME=1        # セグメントの長さ(秒)
-MAX_SEGMENTS=150      # 保持するセグメント数
-VIDEO_DEVICE="/dev/video0"
-
-# 品質設定（必要に応じて調整）
-VIDEO_BITRATE="4000k"
-VIDEO_RESOLUTION="1280x720"
-VIDEO_FRAMERATE=30
+# .env ファイルを読み込む
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
+    echo "Error: .env file not found: $ENV_FILE"
+    exit 1
+fi
+set -a
+source "$ENV_FILE"
+set +a
 
 # デバイス確認
 if [ ! -e "$VIDEO_DEVICE" ]; then

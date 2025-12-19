@@ -5,7 +5,19 @@
 
 # スクリプトのディレクトリを取得
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RECORDING_DIR="${SCRIPT_DIR}/recordings"
+
+# .env ファイルを読み込む
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
+    echo "Error: .env file not found: $ENV_FILE"
+    exit 1
+fi
+set -a
+source "$ENV_FILE"
+set +a
+
+# ディレクトリ作成
+mkdir -p "$OUTPUT_DIR"
 
 # 引数チェック
 if [ $# -lt 1 ]; then
