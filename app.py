@@ -4,8 +4,15 @@ from datetime import datetime
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
+
+@app.get("/")
+def get_root():
+    return {"Hello": "World"}
 
 @app.get("/videos")
 def get_videos(time: int, background_tasks: BackgroundTasks):
@@ -39,7 +46,12 @@ def get_videos(time: int, background_tasks: BackgroundTasks):
     # 出力ファイル名を生成（lookback_YYYYMMDD_HHMMSS.mp4）
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_filename = f"lookback_{timestamp}.mp4"
-    output_path = script_dir / output_filename
+
+    output_dir = Path(os.getenv("OUTPUT_DIR"))
+    if not output_dir:
+        output_dir = script_dir
+
+    output_path = output_dir / output_filename
 
     try:
         # combine_segments.shを実行
@@ -57,12 +69,14 @@ def get_videos(time: int, background_tasks: BackgroundTasks):
         if not output_path.exists():
             raise HTTPException(status_code=500)
 
+        # レスポンス後にファイルを削除
+        background_tasks.add_task(os.remove, str(output_path))
+
         # ファイルをレスポンスで返す
         return FileResponse(
             path=output_path,
             media_type="video/mp4",
-            filename=output_filename,
-            background=BackgroundTasks(os.remove, str(output_path))
+            filename=output_filename
         )
 
     except subprocess.TimeoutExpired:
