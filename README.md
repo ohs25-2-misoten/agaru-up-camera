@@ -1,26 +1,34 @@
-# AgaruUpCamera
+# agaru-up-camera
 
-AgaruUpCameraは、ラズベリーパイとPython(FastAPI)、ffmpegを使用したAPIアプリケーションです。
+Raspberry Pi上で動作するカメラ記録・動画取得APIシステムです。
 
-## 📱 概要
+## 📋 概要
 
-ラズベリーパイに接続されたUSBカメラを使用して、常時録画を行い、APIでリクエストされた際に指定された秒数の録画を遡って動画をレスポンスします。
+このプロジェクトは、Raspberry Piのカメラを使用して動画を継続的に記録し、FastAPI経由で取得できるシステムです。指定した秒数分の動画を自動的に結合して提供します。
 
-## 🛠️ 技術スタック
+## 📁 ファイル構成
 
-- **ハードウェア**: Raspberry Pi
-- **言語**: Python
-- **フレームワーク**: FastAPI
-- **動画処理**: ffmpeg
-- **カメラ**: USBカメラ
+```
+agaru-up-camera/
+├── main.py                  # FastAPI アプリケーション（動画取得API）
+├── rec.sh                   # カメラ記録スクリプト
+├── combine_segments.sh      # 動画結合スクリプト
+├── pyproject.toml           # プロジェクト設定
+├── .env.sample              # 環境変数テンプレート
+├── LICENSE                  # ライセンス
+├── README.md                # このファイル
+├── recordings/              # 記録された動画ファイルの保存先
+└── .venv/                   # Python仮想環境
+```
 
 ## 🚀 セットアップ
 
 ### 必要条件
 
-- Raspberry Pi 4B
-- Debian 13(trixie) 以降
-- Python 3.8+
+- Raspberry Pi
+- Python 3.14以上
+- uv（パッケージ管理）
+- FFmpeg（動画結合用）
 
 ### インストール手順
 
@@ -30,35 +38,56 @@ git clone https://github.com/ohs25-2-misoten/agaru-up-camera.git
 cd agaru-up-camera
 ```
 
-## 📁 プロジェクト構造
-
-```
-agaru-up-camera/
-├── concat_videos.py    # 動画結合処理
-├── rec.py              # 録画処理
-└── app.py              # アプリのエントリーポイント
+2. `.env` ファイルを設定します：
+```bash
+cp .env.sample .env
+# .envファイルを適切に編集してください
 ```
 
-## 🔄 開発ワークフロー
+3. 依存パッケージをインストールします：
+```bash
+uv sync
+```
 
-このプロジェクトでは、GitFlowベースのブランチ戦略を採用しています。
+## 🔧 主な機能
 
-### ブランチ規則
+### 動画記録 (`rec.sh`)
 
-- `main`: 本番環境用の安定したコード
-- `dev`: 開発の中心となるブランチ
+Raspberry Piのカメラから継続的に動画を記録します。
+```bash
+./rec.sh
+```
+
+### 動画取得API (`main.py`)
+
+FastAPIサーバーとして起動し、指定した秒数分の動画を取得できます。
+
+```bash
+uvicorn main:app --reload
+```
+
+**エンドポイント:**
+- `GET /`: ヘルスチェック
+- `GET /videos?time=<seconds>`: 指定秒数（1～120秒）分の動画をMP4形式で返す
+
+### 動画結合 (`combine_segments.sh`)
+
+複数の動画セグメントを1つのMP4ファイルに結合します。
+
+## 📝 環境変数
+
+`.env` ファイルで以下の環境変数を設定できます：
+- `OUTPUT_DIR`: 出力動画ファイルの保存先ディレクトリ
 - `feat/*`: 新機能開発用ブランチ
-- `release/*`: リリース準備用ブランチ
+- `fix/*`: バグ修正用ブランチ
 - `hotfix/*`: 緊急修正用ブランチ
 
-詳細は [BRANCHING_RULES.md](./BRANCHING_RULES.md) を参照してください。
+### 開発フロー
 
-### 新機能開発の流れ
-
-1. devブランチから機能ブランチを作成：
+1. mainブランチから短命ブランチを作成：
 ```bash
-git checkout dev
-git pull origin dev
+git checkout main
+git pull origin main
 git checkout -b feat/your-feature-name
 ```
 
@@ -68,8 +97,8 @@ git add .
 git commit -m "feat: 新機能の説明"
 ```
 
-3. プルリクエストを作成してdevにマージ
-
+3. プルリクエストを作成してmainにマージ
+4. マージ後、短命ブランチを削除
 
 ## 📝 コーディング規約
 
@@ -103,10 +132,26 @@ Semantic Versioning (SemVer) を採用：
 
 ### リリースプロセス
 
-1. devからreleaseブランチを作成
-2. バージョン更新とリリース準備
-3. mainにマージしてタグ付け
-4. サーバーにデプロイ（例: Raspberry Pi上でサービスを起動、またはDockerイメージを作成してデプロイ）
+1. mainブランチから最新の変更を取得：
+```bash
+git checkout main
+git pull origin main
+```
+
+2. バージョンを更新（例：1.0.0 → 1.1.0）
+
+3. 変更をコミット：
+```bash
+git commit -m "chore: リリース v1.1.0"
+```
+
+4. タグを作成してプッシュ：
+```bash
+git tag -a v1.1.0 -m "Release v1.1.0"
+git push origin main --tags
+```
+
+5. GitHubの Releases ページでリリースノートを作成
 
 ## 🤝 コントリビューション
 
@@ -141,8 +186,9 @@ GNU Affero General Public License v3.0 (AGPL-3.0) ライセンスの下で提供
 
 ## 📚 追加リソース
 
-[WIP]
+- [Cloudflare Tunnel Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
+- [uv - Python package installer](https://docs.astral.sh/uv/)
 
 ---
 
-**最終更新**: 2025年11月27日
+**最終更新**: 2026年1月8日
